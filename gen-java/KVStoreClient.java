@@ -101,7 +101,6 @@ public class KVStoreClient {
 		}catch (TException x){
 			System.err.printf("Wrong host or port!%n");
 			System.exit(2);
-			//x.printStackTrace();
 		}
 	}
 
