@@ -8,7 +8,7 @@ To compile:
 	javac *.java
 
 To run:
-	java KVStoreServer;
+	java KVStoreServer
 	java KVStoreClient -server localhost:9090 -set key1 value1
 	java KVStoreClient -server localhost:9090 -get key1
 	java KVStoreClient -server localhost:9090 -del key1
