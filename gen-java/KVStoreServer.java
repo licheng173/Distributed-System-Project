@@ -23,7 +23,8 @@ public class KVStoreServer {
 	        public void run() {
 	          simple(processor);
 	        }
-	      };      
+	      }; 
+
 	      new Thread(simple).start();
 	    } catch (Exception x) {
 	      x.printStackTrace();

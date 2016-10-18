@@ -83,6 +83,7 @@ public class KVStoreClient {
 
 	public static void main(String[] args){
 		KVStoreClient kvstoreClient= new KVStoreClient();
+		//Do input check first
 		if (args == null || !kvstoreClient.inputValid(args)){
 			System.err.printf("Please enter valid parameter!%n%s",INPUT_STANDARD);
       		System.exit(2);
@@ -101,6 +102,7 @@ public class KVStoreClient {
 		}catch (TException x){
 			System.err.printf("Wrong host or port!%n");
 			System.exit(2);
+			//x.printStackTrace();
 		}
 	}
 
