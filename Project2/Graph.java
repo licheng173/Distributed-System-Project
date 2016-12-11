@@ -98,14 +98,14 @@ public class Graph {
             //System.out.printf("%s hybrid edge built!%n", n.toString());
         }
 
-        // for(Node n:write) {
-        //     n.next.addAll(n.nextHybrid);
-        // }
+        for(Node n:write) {
+            n.next.addAll(n.nextHybrid);
+        }
 
 
-        // write.addAll(read);
-        // graph = write;
-        // System.out.println("Graph built!");
+        write.addAll(read);
+        graph = write;
+        System.out.println("Graph built!");
     }
 
 
@@ -123,7 +123,8 @@ public class Graph {
         System.out.printf("Now on node %s.%n", w.toString());
         if(w.next == null)
             return;
-        if(s.contains(w)) return;
+        if(s.contains(w)) 
+            return;
 
         s.add(w);
 
