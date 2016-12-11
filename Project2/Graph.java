@@ -6,10 +6,16 @@ import java.util.*;
 public class Graph {
     private ArrayList<Node> nodeList;
     public ArrayList<Node> graph;
+    private HashSet<Node> marked;
+    private HashSet<Node> onStack;
+    private boolean hasCycle;
 
     public Graph(ArrayList<Node> l) {
         this.nodeList = l;
         this.graph = null;
+        this.marked = null;
+        this.onStack = null;
+        this.hasCycle = false;        
     }
 
     public void createGraph() {
@@ -80,17 +86,6 @@ public class Graph {
             System.exit(1);
         }
         System.out.println("Data Edge built!");
-        // write.addAll(read);
-        // graph = write;
-
-        // for(Node a: graph ) {
-        //     System.out.print(a.toString() + " :");
-        //     for(Node n: a.next) {
-        //         System.out.print(n.toString() +"->");
-        //     }
-        //     System.out.println();
-        // }
-
        
 
         for(Node n : write) {
@@ -110,17 +105,6 @@ public class Graph {
         System.out.println("Graph built!");
     }
 
-
-    public boolean checkAtomicity() {
-        HashSet<Node> check = new HashSet<>();
-        for(Node n:graph) {
-            if(!final_dfs(check,n)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private void dfs(HashSet<Node> s, Node w, Node first, HashMap<Node, Node> map) {
         System.out.printf("Now on node %s.%n", w.toString());
         if(w.next == null)
@@ -134,30 +118,45 @@ public class Graph {
         for(Node n:h) {
             if(!s.contains(n)) {
                 if (n.type == Type.Read) {
-                //     Node write = map.get(n);
-                //     if (first.value != write.value && !w.next.contains(write)) {
-                //         first.nextHybrid.add(write);
-                //     }
-                // }
+                    Node write = map.get(n);
+                    if (first.value != write.value && !w.next.contains(write)) {
+                        first.nextHybrid.add(write);
+                    }
+                }
                 dfs(s,n,first,map);
             }
         }
 
     }
 
-    private boolean final_dfs(HashSet<Node> s, Node input) {
-        if(s.contains(input))
-            return false;
-        else
-            s.add(input);
-        HashSet<Node> h = input.next;
-        for(Node n : h){
-            if(!final_dfs(s,n)) {
-                return false;
+    public boolean hasCycle() {
+        return hasCycle;
+    }
+
+    public void checkAtomicity() {
+        HashSet<Node> check = new HashSet<>();
+        for(Node n:graph) {
+            if(!marked.contains(n)) {
+                final_dfs(n);
             }
         }
-        s.remove(input);
-        return true;
+    }
+
+    public void final_dfs(Node input) {
+        marked.add(input);
+        onStack.add(input);
+    
+        HashSet<Node> h = input.next;
+        for(Node n : h){
+            if(this.hasCycle) return;
+            else if(!marked.contains(n)) {
+                final_dfs(n);
+            } else if(onStack.contains(n)) {
+                hasCycle = true;
+                return;
+            }
+        }
+        onStack.(input);
     }
 
     // public static void main(String[] args) {
