@@ -1,5 +1,6 @@
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.*;
 import sequenceassign.*;
 import kvstore.*;
 
@@ -27,30 +28,65 @@ public class Test {
 		}
 	}
 
-	public static void registerInitialize(){
+	public static void registerInitialize(ArrayList<Node> nodes){
 		KVStoreClient kvstoreClient = new KVStoreClient();
 		kvstoreClient.kvClient(String.format("-server %s:%s -set %s %s", host, port, TEST_KEY, INITIAL_REGISTER_VALUE));
+		nodes.add(new Node(0,0,Integer.parseInt(INITIAL_REGISTER_VALUE),Type.Write));
 		System.out.printf("Initialization successed!%n");
 	}
 
 	public static void main (String[] args){
 		inputCheck(args);
-		registerInitialize();
+		final ArrayList<Node> nodes = new ArrayList<Node>();
+		registerInitialize(nodes);
 		ExecutorService clientPool = Executors.newFixedThreadPool(10);
-		for (int i = 0; i < 2; i++){
+		for (int i = 0; i < 4; i++){
+			final int currentThread = i;
 			clientPool.submit(new Runnable(){
 				@Override 
 				public void run(){
 					SequenceAssignClient sequenceAssignClient = new SequenceAssignClient();
 					KVStoreClient kvstoreClient = new KVStoreClient();
-					for (int i = 0; i < 100; i++){
+					for (int j = 0; j < 6; j++){
+						int currentbefore = sequenceAssignClient.sequenceGenerator();
+						int setValue = (j + 1) + currentThread * 5;
+						Result kvResult = kvstoreClient.kvClient(String.format("-server %s:%s -set %s %d", host, port, TEST_KEY, setValue));
+						int currentafter = sequenceAssignClient.sequenceGenerator();
+						if (kvResult.error != ErrorCode.kSuccess){
+							System.err.printf("Write operation error!%n");
+							System.exit(2);
+						}else{
+							Node current = new Node(currentbefore, currentafter, Integer.parseInt(kvResult.value), Type.Write);
+							nodes.add(current);
+						}
+						//System.out.printf("%s whole process: %d set(%s, %d) %d %n", Thread.currentThread().getName(),currentbefore, TEST_KEY, setValue, currentafter);
+					}
+				}
+			});			
+		}
+
+		for (int i = 0; i < 6; i++){
+			clientPool.submit(new Runnable(){
+				@Override 
+				public void run(){
+					SequenceAssignClient sequenceAssignClient = new SequenceAssignClient();
+					KVStoreClient kvstoreClient = new KVStoreClient();
+					for (int j = 0; j < 6; j++){
 						//try{
-							long currentbefore = sequenceAssignClient.sequenceGenerator();
-							int setValue = (int)(Math.random() * 100 + 1);
-							Result kvResult = kvstoreClient.kvClient(String.format("-server %s:%s -set %s %d", host, port, TEST_KEY, setValue));
-							long currentafter = sequenceAssignClient.sequenceGenerator();
-							System.out.printf("%s whole process: %d set(%s, %d) %d %n", Thread.currentThread().getName(),currentbefore, TEST_KEY, setValue, currentafter);
-							//Thread.sleep(10);
+						int currentbefore = sequenceAssignClient.sequenceGenerator();
+						Result kvResult = kvstoreClient.kvClient(String.format("-server %s:%s -get %s", host, port, TEST_KEY));
+						int currentafter = sequenceAssignClient.sequenceGenerator();						
+						//System.out.printf("%s whole process: %d get(%s, %s) %d %n", Thread.currentThread().getName(), currentbefore, TEST_KEY, kvResult.value, currentafter);
+						if (kvResult.error == ErrorCode.kSuccess){
+							Node current = new Node(currentbefore, currentafter, Integer.parseInt(kvResult.value), Type.Read);
+							nodes.add(current);			
+						}else if (kvResult.error == ErrorCode.kKeyNotFound){
+							System.err.printf("Unexpected KeyNotFound error!%n");
+							System.exit(1);					
+						}else{
+							System.err.printf("Read operation error!%n");
+							System.exit(2);						
+						}
 						//}catch (InterruptedException ie){
 	      				//	System.err.printf("Something wrong happened!%n");
 	      				//	System.exit(2);
@@ -58,84 +94,25 @@ public class Test {
 						//}
 					}
 				}
-			});			
+			});
 		}
-
-
-		for (int i = 0; i < 3; i++){
-			clientPool.submit(new Runnable(){
-				@Override 
-				public void run(){
-					SequenceAssignClient sequenceAssignClient = new SequenceAssignClient();
-					KVStoreClient kvstoreClient = new KVStoreClient();
-					for (int i = 0; i < 100; i++){
-						//try{
-							long currentbefore = sequenceAssignClient.sequenceGenerator();
-							Result kvResult = kvstoreClient.kvClient(String.format("-server %s:%s -get %s", host, port, TEST_KEY));
-							long currentafter = sequenceAssignClient.sequenceGenerator();						
-							System.out.printf("%s whole process: %d get(%s, %s) %d %n", Thread.currentThread().getName(), currentbefore, TEST_KEY, kvResult.value, currentafter);
-							//Thread.sleep(10);
-						//}catch (InterruptedException ie){
-	      				//	System.err.printf("Something wrong happened!%n");
-	      				//	System.exit(2);
-							//ie.printStackTrace();
-						//}
-					}
-				}
-			});			
-		}
-
-		
-		// clientPool.submit(new Runnable(){
-		// 	@Override 
-		// 	public void run(){
-		// 		SequenceAssignClient sequenceAssignClient = new SequenceAssignClient();
-		// 		KVStoreClient kvstoreClient = new KVStoreClient();
-		// 		for (int i = 0; i < 100; i++){
-		// 			try{
-		// 				long currentbefore = sequenceAssignClient.sequenceGenerator();
-		// 				Result kvResult = kvstoreClient.kvClient(String.format("-server %s:%s -get %d", host, port, 1));
-		// 				long currentafter = sequenceAssignClient.sequenceGenerator();						
-		// 				System.out.printf("%s whole process: %d get(%d, %s) %d %n", Thread.currentThread().getName(), currentbefore, 1, kvResult.value, currentafter);
-		// 				Thread.sleep(10);							
-		// 			}catch (InterruptedException ie){
-  //     					System.err.printf("Something wrong happened!%n");
-  //     					System.exit(2);						
-		// 				//ie.printStackTrace();
-		// 			}
-		// 		}
-		// 	}
-		// });
-
-		// clientPool.submit(new Runnable(){
-		// 	@Override 
-		// 	public void run(){
-		// 		SequenceAssignClient sequenceAssignClient = new SequenceAssignClient();
-		// 		for (int i = 0; i < 200; i++){
-		// 			//try{
-		// 				long current = sequenceAssignClient.sequenceGenerator();
-		// 				System.out.printf("%s got sequence: %d%n", Thread.currentThread().getName(),current);
-		// 				//Thread.sleep(20);							
-		// 			//}catch (InterruptedException ie){
-		// 			//	ie.printStackTrace();
-		// 			//}
-		// 		}
-		// 	}
-		// });
-
 		clientPool.shutdown();
+		while (true){
+			if (clientPool.isTerminated()){
+				break;
+			}
+		}
 
-		// SequenceAssignClient sequenceAssignClient = new SequenceAssignClient();
-		// long current = 0;
-		// for (int i = 0; i < 100; i++){
-		// 	try{
-		// 		current = sequenceAssignClient.sequenceGenerator();
-		// 		System.out.printf("Got sequence is : %d%n", current);
-		// 		Thread.sleep(50);
-		// 	}catch(InterruptedException ie){
-		// 		ie.printStackTrace();
-		// 	}
-			
-		// } 
+		Graph graph = new Graph(nodes);
+     	graph.createGraph();
+     	// boolean flag = graph.checkAtomicity();
+     	// System.out.println(flag);
+    	// for(Node a: graph.graph ) {
+     //     	System.out.println(a.toString() + " :");
+     //        for(Node n: a.next) {
+     //            System.out.print(n.toString() +", ");
+     //        }
+     //        System.out.println();
+     //    }     	
 	}
 }
