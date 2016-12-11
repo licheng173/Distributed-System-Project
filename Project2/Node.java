@@ -3,11 +3,11 @@ public class Node {
     public int start;
     public int end;
     public int value;
-    public int type;
+    public Type type;
     public HashSet<Node> next;
     public HashSet<Node> nextHybrid;
 
-    public Node(int s, int e, int v, int t) {
+    public Node(int s, int e, int v, Type t) {
         this.start = s;
         this.end = e;
         this.value = v;
@@ -18,7 +18,7 @@ public class Node {
 
     @Override
     public String toString() {
-        return "("+"Start:"+Integer.toString(start)+" end:"+Integer.toString(end)+" value:"+Integer.toString(value)+" type:" + Integer.toString(type) +")";
+        return "("+"Start:"+Integer.toString(start)+" end:"+Integer.toString(end)+" value:"+Integer.toString(value)+" type:" + type +")";
     }
 
 }

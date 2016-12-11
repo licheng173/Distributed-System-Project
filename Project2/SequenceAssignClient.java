@@ -8,8 +8,8 @@ import sequenceassign.*;
 
 public class SequenceAssignClient {
 
-  public long sequenceGenerator() {   
-    long currentSequence = 0;
+  public int sequenceGenerator() {   
+    int currentSequence = 0;
     try {
       TTransport transport;
      
@@ -34,7 +34,7 @@ public class SequenceAssignClient {
     return currentSequence;
   }
 
-  private long perform(SequenceAssign.Client client) throws TException
+  private int perform(SequenceAssign.Client client) throws TException
   {   
     return client.sequenceAssign();
   }
