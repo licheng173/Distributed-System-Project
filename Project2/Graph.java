@@ -91,10 +91,12 @@ public class Graph {
         //     System.out.println();
         // }
 
-        HashSet<Node> checkedWrite = new HashSet<>();
+       
 
         for(Node n : write) {
+             HashSet<Node> checkedWrite = new HashSet<>();
             dfs(checkedWrite,n,n,map);
+
             //System.out.printf("%s hybrid edge built!%n", n.toString());
         }
 
@@ -132,15 +134,14 @@ public class Graph {
         for(Node n:h) {
             if(!s.contains(n)) {
                 if (n.type == Type.Read) {
-                    Node write = map.get(n);
-                    if (first.value != write.value && !w.next.contains(write)) {
-                        first.nextHybrid.add(write);
-                    }
-                }
+                //     Node write = map.get(n);
+                //     if (first.value != write.value && !w.next.contains(write)) {
+                //         first.nextHybrid.add(write);
+                //     }
+                // }
                 dfs(s,n,first,map);
             }
         }
-        s.remove(w);
 
     }
 
