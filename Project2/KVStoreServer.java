@@ -34,7 +34,7 @@ public class KVStoreServer {
   public static void simple(KVStore.Processor processor) {
     try {
       TServerTransport serverTransport = new TServerSocket(9091);
-      TServer server = new TSimpleServer(new Args(serverTransport).processor(processor));
+      TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
       System.out.println("Starting the kvstore server...");
       server.serve();
     } catch (Exception e) {

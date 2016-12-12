@@ -1,21 +1,19 @@
 import java.util.*;
 /**
- * Created by chengli on 12/8/16.
+ * Created by Cheng Li, Chaoyue Liu, Chi Zhang on 12/8/16.
  */
 
 public class Graph {
     private ArrayList<Node> nodeList;
-    public ArrayList<Node> graph;
     private HashSet<Node> marked;
     private HashSet<Node> onStack;
     private boolean hasCycle;
 
-    public Graph(ArrayList<Node> l) {
-        this.nodeList = l;
-        this.graph = null;
-        this.marked = null;
-        this.onStack = null;
-        this.hasCycle = false;        
+    public Graph(Vector<Node> l) {
+        this.nodeList = new ArrayList<>(l);
+        this.marked = new HashSet<Node>();
+        this.onStack = new HashSet<Node>();
+        this.hasCycle = false;
     }
 
     public void createGraph() {
@@ -35,13 +33,21 @@ public class Graph {
                 return e2 - e1;
             }
         };
+        Comparator<Node> comValInc = new Comparator<Node>() {
+            @Override
+            public int compare(Node o1, Node o2) {
+                int s1 = o1.value;
+                int s2 = o2.value;
+                return s1 - s2;
+            }
+        };
 
+        // Build time edge
         ArrayList<Node> l1 = new ArrayList<>(nodeList);
         ArrayList<Node> l2 = new ArrayList<>(nodeList);
         Collections.sort(l1, comStartInc);
         Collections.sort(l2, comEndDec);
 
-        // build time edge
         for(Node A : l1) {
             int t = Integer.MIN_VALUE;
             for (Node B : l2) {
@@ -56,7 +62,7 @@ public class Graph {
         }
         System.out.println("Time Edge built!");
 
-        // build dictating edge
+        // Build data edge
         ArrayList<Node> write = new ArrayList<>();
         ArrayList<Node> read = new ArrayList<>();
 
@@ -66,86 +72,80 @@ public class Graph {
             else
                 read.add(n);
         }
-        Collections.sort(write,comStartInc);
-        int start = 0;
-        int count = 0;
-        HashMap<Node,Node> map = new HashMap<>();
-        while (start < write.size()) {
-            int v1 = write.get(start).value;
-            for(Node n : read) {
-                if(n.value == v1) {
-                    count++;
-                    write.get(start).next.add(n);
-                    map.put(n, write.get(start));
+        Collections.sort(write, comValInc);
+        Collections.sort(read, comValInc);
+
+        int writeIndex = 0;
+        int readIndex = 0;
+        HashMap<Node,Node> dictatingMap = new HashMap<>();
+        while (readIndex < read.size()){
+            Node currentRead = read.get(readIndex);
+            Node currentWrite = write.get(writeIndex);
+            if (currentRead.value == currentWrite.value){
+                currentWrite.next.add(currentRead);
+                dictatingMap.put(currentRead, currentWrite);
+                readIndex++;
+            } else{
+                writeIndex++;
+                if (writeIndex >= write.size()){
+                    System.err.println("Found unmatched read! Inconsistent!");
+                    System.exit(1);
                 }
             }
-            start++;
-        }
-        if(count < read.size()){
-            System.err.println("Inconsistent read!");
-            System.exit(1);
         }
         System.out.println("Data Edge built!");
-       
 
+        //Build hybrid edge
         for(Node n : write) {
-             HashSet<Node> checkedWrite = new HashSet<>();
-            dfs(checkedWrite,n,n,map);
-
-            //System.out.printf("%s hybrid edge built!%n", n.toString());
+            HashSet<Node> checkedWrite = new HashSet<>();
+            dfs(checkedWrite,n,n,dictatingMap);
         }
 
         for(Node n:write) {
             n.next.addAll(n.nextHybrid);
         }
-
-
-        write.addAll(read);
-        graph = write;
         System.out.println("Graph built!");
     }
 
-    private void dfs(HashSet<Node> s, Node w, Node first, HashMap<Node, Node> map) {
-        System.out.printf("Now on node %s.%n", w.toString());
-        if(w.next == null)
+    private void dfs(HashSet<Node> s, Node w, Node first, HashMap<Node, Node> dictatingMap) {
+        if(w.next == null){
             return;
-        if(s.contains(w)) 
+        }
+        if(s.contains(w)){
             return;
-
+        }
         s.add(w);
 
         HashSet<Node> h = w.next;
         for(Node n:h) {
             if(!s.contains(n)) {
                 if (n.type == Type.Read) {
-                    Node write = map.get(n);
+                    Node write = dictatingMap.get(n);
                     if (first.value != write.value && !w.next.contains(write)) {
                         first.nextHybrid.add(write);
                     }
                 }
-                dfs(s,n,first,map);
+                dfs(s,n,first,dictatingMap);
             }
         }
-
     }
 
-    public boolean hasCycle() {
-        return hasCycle;
-    }
-
-    public void checkAtomicity() {
+    public boolean checkAtomicity() {
         HashSet<Node> check = new HashSet<>();
-        for(Node n:graph) {
+        int count = 1;
+        for(Node n:nodeList) {
             if(!marked.contains(n)) {
                 final_dfs(n);
             }
+            count++;
         }
+        return !hasCycle;
     }
 
     public void final_dfs(Node input) {
         marked.add(input);
         onStack.add(input);
-    
+
         HashSet<Node> h = input.next;
         for(Node n : h){
             if(this.hasCycle) return;
@@ -156,31 +156,6 @@ public class Graph {
                 return;
             }
         }
-        onStack.(input);
+        onStack.remove(input);
     }
-
-    // public static void main(String[] args) {
-    //     Node n1 = new Node(1,4,0,Type.Write);
-    //     Node n2 = new Node(5,8,1,Type.Write);
-    //     Node n3 = new Node(7,9,0,Type.Read);
-    //     Node n4 = new Node(2,10,2,Type.Write);
-    //     Node n5 = new Node(3,6,3,Type.Read);
-    //     ArrayList<Node> l = new ArrayList<>();
-    //     l.add(n1);
-    //     l.add(n2);
-    //     l.add(n3);
-    //     l.add(n4);
-    //     l.add(n5);
-    //     Graph g = new Graph(l);
-    //     g.createGraph();
-    //     boolean flag = g.checkAtomicity();
-    //     for(Node a: g.graph ) {
-    //         System.out.print(a.toString() + " :");
-    //         for(Node n: a.next) {
-    //             System.out.print(n.toString() +"->");
-    //         }
-    //         System.out.println();
-    //     }
-    //     System.out.print(flag);
-    // }
 }

@@ -1,11 +1,15 @@
 import  java.util.*;
+/**
+ * Created by Cheng Li, Chaoyue Liu, Chi Zhang on 12/8/16.
+ */
+ 
 public class Node {
-    public int start;
-    public int end;
-    public int value;
-    public Type type;
-    public HashSet<Node> next;
-    public HashSet<Node> nextHybrid;
+    public final int start;
+    public final int end;
+    public final int value;
+    public final Type type;
+    public final HashSet<Node> next;
+    public final HashSet<Node> nextHybrid;
 
     public Node(int s, int e, int v, Type t) {
         this.start = s;

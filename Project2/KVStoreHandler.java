@@ -1,6 +1,7 @@
 import org.apache.thrift.TException;
 import kvstore.*;
 import java.util.HashMap;
+import java.util.*;
 
 public class KVStoreHandler implements KVStore.Iface{
 	public static HashMap<String, String> kvstore;
@@ -24,7 +25,7 @@ public class KVStoreHandler implements KVStore.Iface{
     	if (key == null){
             return new Result("", ErrorCode.kError, "Null key!");
         }else if(kvstore.containsKey(key)){
-    		result = new Result(kvstore.get(key), ErrorCode.kSuccess, "");
+            result = new Result(kvstore.get(key), ErrorCode.kSuccess, "");
     	}else{
     		result = new Result("", ErrorCode.kKeyNotFound, "");
     	}
