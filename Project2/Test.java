@@ -19,7 +19,9 @@ public class Test {
 										"Options:\n" +
 	 									"-server host:port\n";
 	private static final String INITIAL_REGISTER_VALUE = "0";
-	private static final String TEST_KEY = "key";
+	private static final String TEST_KEY = "testkey";
+	private static final String SEQUENCE_HOST = "localhost";
+	private static final int SEQUENCE_PORT = 9099;
 	private static final int REPEAT = 1000;
 	private static String host;
 	private static int port;
@@ -60,12 +62,18 @@ public class Test {
 				System.err.printf("Kvstore server problem!%n");
 				System.exit(2);
 			}else{
-				nodes.add(new Node(0,0,Integer.parseInt(INITIAL_REGISTER_VALUE),Type.Write));
-				System.out.printf("Initialization successed!%n");
+				Result get = client.kvget(TEST_KEY);
+				if (get.value.equals(INITIAL_REGISTER_VALUE)){
+					nodes.add(new Node(0,0,Integer.parseInt(INITIAL_REGISTER_VALUE),Type.Write));
+					System.out.printf("Initialization successed!%n");					
+				}else{
+					System.err.printf("Unexpected initial write fail%n");
+					System.exit(1);					
+				}
 			}		
 			transport.close();
 		}catch (TException x){
-			System.err.printf("TException. Wrong host or port!%n");
+			System.err.printf("TException when initialize!%n");
 			x.printStackTrace();
 			System.exit(2);
 		}
@@ -86,7 +94,7 @@ public class Test {
 					try{
 						TTransport transportSeq;
 						TTransport transportKV;
-						transportSeq = new TSocket("localhost",9090);
+						transportSeq = new TSocket(SEQUENCE_HOST,SEQUENCE_PORT);
 						transportKV = new TSocket(thisHost, thisPort);
 						transportSeq.open();
 						transportKV.open();
@@ -130,7 +138,7 @@ public class Test {
 					try{
 						TTransport transportSeq;
 						TTransport transportKV;
-						transportSeq = new TSocket("localhost",9090);
+						transportSeq = new TSocket(SEQUENCE_HOST,SEQUENCE_PORT);
 						transportKV = new TSocket(thisHost, thisPort);
 						transportSeq.open();
 						transportKV.open();
@@ -155,8 +163,8 @@ public class Test {
 									System.exit(1);
 								}
 							}else{
-								System.err.printf("Read operation unsuccess!%n");
-								System.exit(2);											
+								System.err.printf("Unexpected key not found%n");
+								System.exit(1);											
 							}							
 						}
 						transportKV.close();
