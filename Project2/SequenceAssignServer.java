@@ -36,7 +36,7 @@ public class SequenceAssignServer {
 
   public static void simple(SequenceAssign.Processor processor) {
     try {
-      TServerTransport serverTransport = new TServerSocket(9090);
+      TServerTransport serverTransport = new TServerSocket(9099);
       TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
       System.out.println("Starting the sequenceassign server...");
       server.serve();
